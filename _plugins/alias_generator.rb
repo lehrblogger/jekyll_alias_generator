@@ -67,10 +67,9 @@ module Jekyll
   end
 
   class AliasFile < StaticFile
-    require 'set'
-
-    def destination(dest)
-      File.join(dest, @dir)
+    def initialize(site, base, dir, name, alias_destination_path)
+      super(site, base, dir, name)
+      @alias_destination_path = alias_destination_path
     end
 
     def modified?
@@ -78,7 +77,28 @@ module Jekyll
     end
 
     def write(dest)
-      return true
+      dest_path = destination(dest)
+      
+      FileUtils.mkdir_p(File.dirname(dest_path))
+      File.open(dest_path, 'w') do |file|
+        file.write(alias_template)
+      end
+
+      true
+    end
+
+    private
+    def alias_template()
+      <<-EOF
+      <!DOCTYPE html>
+      <html>
+      <head>
+      <link rel="canonical" href="#{@alias_destination_path}"/>
+      <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+      <meta http-equiv="refresh" content="0;url=#{@alias_destination_path}" />
+      </head>
+      </html>
+      EOF
     end
   end
 end
